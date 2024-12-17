@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import PollList from '../components/PollList';
 import AuthWrapper from '../components/AuthWrapper';
-import CreatePollForm from '../components/CreatePollForm';
+// import CreatePollForm from '../components/CreatePollForm';
 
 export default function PollsPage() {
   const router = useRouter();
