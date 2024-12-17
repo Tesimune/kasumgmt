@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   PieChart,
   Pie,
@@ -28,7 +27,7 @@ interface PollItemProps {
     pollId: string;
     userId: string;
   }[];
-  isUserVoted: boolean; // Backend provided
+  isUserVoted: boolean; // Backend-provided
   isAdmin: boolean;
 }
 
@@ -47,7 +46,7 @@ export default function PollItem({
   description,
   candidates,
   votes,
-  isUserVoted,
+  isUserVoted: initialIsUserVoted,
   isAdmin,
 }: PollItemProps) {
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(
@@ -55,8 +54,8 @@ export default function PollItem({
   );
   const [isVoting, setIsVoting] = useState(false);
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
+  const [isUserVoted, setIsUserVoted] = useState(initialIsUserVoted);
 
-  const router = useRouter();
 
   // Calculate vote counts
   useEffect(() => {
@@ -95,8 +94,15 @@ export default function PollItem({
         throw new Error('Failed to cast vote');
       }
 
+      // Optimistically update the UI
+      setVoteCounts((prev) => ({
+        ...prev,
+        [selectedCandidate]: (prev[selectedCandidate] || 0) + 1,
+      }));
+      setIsUserVoted(true);
+      setSelectedCandidate(null);
+
       alert('Vote Recorded');
-      router.refresh(); // Reload data from backend
     } catch (error) {
       console.error('Error casting vote:', error);
       alert('Failed to cast vote. Please try again.');
