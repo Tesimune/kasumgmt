@@ -6,8 +6,8 @@ export async function POST(request: Request) {
   try {
     const { user, token } = await login(matric, password)
     return NextResponse.json({ user, token })
-  } catch {
-    return NextResponse.json({ error: 'Login failed' }, { status: 400 })
+  } catch (error) {
+    return NextResponse.json({ error }, { status: 400 })
   }
 }
 

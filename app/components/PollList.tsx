@@ -14,62 +14,100 @@ interface Poll {
   }[];
   votes: {
     candidateId: string;
-    user: { id: string };
+    pollId: string;
+    userId: string;
   }[];
+}
+
+interface User {
+  id: string;
+  role: string;
 }
 
 export default function PollList() {
   const [polls, setPolls] = useState<Poll[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      const decodedToken = JSON.parse(atob(token.split('.')[1]));
-      setUserId(decodedToken.id);
-    }
+    const fetchUserAndPolls = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
 
-    const fetchPolls = async () => {
-      const response = await fetch('/api/polls', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setPolls(data);
-      } else {
-        console.error('Failed to fetch polls');
+      try {
+        // Fetch user data
+        const userResponse = await fetch('/api/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setUser(userData);
+        } else {
+          throw new Error('Failed to fetch user data');
+        }
+
+        // Fetch polls
+        const pollsResponse = await fetch('/api/polls', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (pollsResponse.ok) {
+          const pollsData = await pollsResponse.json();
+          setPolls(pollsData);
+        } else {
+          throw new Error('Failed to fetch polls');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        localStorage.removeItem('token');
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchPolls();
+    fetchUserAndPolls();
   }, []);
 
-  const hasUserVoted = (votes: { candidateId: string; user: { id: string } }[], userId: string | null) => {
+  const hasUserVoted = (votes: Poll['votes'], userId: string | null) => {
     if (!userId) return false;
-
-    return votes.some((vote) => vote.user.id === userId);
+    return votes.some((vote) => vote.userId === userId);
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <div>Please log in to view polls.</div>;
+  }
+
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {polls.map((poll) => (
         <PollItem
           key={poll.id}
           id={poll.id}
           position={poll.position}
-          description={poll.description || ''}
+          description={poll.description}
           candidates={poll.candidates.map((candidate) => ({
             ...candidate,
             pollId: poll.id,
           }))}
           votes={poll.votes}
-          isUserVoted={hasUserVoted(poll.votes, userId)}
+          isUserVoted={hasUserVoted(poll.votes, user.id)}
+          isAdmin={user.role === 'admin'}
         />
       ))}
     </div>
   );
 }
+

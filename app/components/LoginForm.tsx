@@ -7,6 +7,8 @@ import { getUserFromToken } from '../lib/auth';
 export default function LoginForm() {
   const [matric, setMatric] = useState('');
   const [password, setPassword] = useState('');
+  const [login, setLogin] = useState(false);
+
   const router = useRouter();
   useEffect(() => {
     const checkAuthentication = async () => {
@@ -20,9 +22,10 @@ export default function LoginForm() {
     };
 
     checkAuthentication();
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
+    setLogin(true);
     e.preventDefault();
     const response = await fetch('/api/login', {
       method: 'POST',
@@ -36,6 +39,7 @@ export default function LoginForm() {
     } else {
       alert('Login failed');
     }
+    setLogin(false);
   };
 
   return (
@@ -75,8 +79,9 @@ export default function LoginForm() {
       <button
         type='submit'
         className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+        disabled={login}
       >
-        Log In
+        {login ? 'Loading please wait...' : 'Log In'}
       </button>
     </form>
   );

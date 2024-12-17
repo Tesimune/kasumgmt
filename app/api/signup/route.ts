@@ -4,7 +4,7 @@ import { signUp } from '@/app/lib/auth'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    console.log('Received data:', body) // Add this line
+    console.log('Received data:', body)
 
     const { matric, password } = body
     
@@ -15,8 +15,7 @@ export async function POST(request: Request) {
     const { user, token } = await signUp(matric, password)
     return NextResponse.json({ user, token })
   } catch (error) {
-    console.error('Signup error:', error) // Add this line
-    return NextResponse.json({ error: 'Signup failed' }, { status: 400 })
+    return NextResponse.json({ error }, { status: 400 })
   }
 }
 
