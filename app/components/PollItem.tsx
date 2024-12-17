@@ -91,7 +91,7 @@ export default function PollItem({
     <div className='border p-4 rounded-md shadow-sm'>
       <h3 className='text-xl font-semibold mb-2'>{position}</h3>
       {description && <p className='text-gray-600 mb-4'>{description}</p>}
-      {!isUserVoted && !isAdmin && (
+      {!isUserVoted && !isAdmin ? (
         <form className='space-y-2'>
           {candidates.map((candidate) => (
             <div key={candidate.id} className='flex items-center justify-between'>
@@ -112,6 +112,10 @@ export default function PollItem({
             </div>
           ))}
         </form>
+      ): (
+        <div>
+          Vote Recoreded
+        </div>
       )}
       {!isUserVoted && !isAdmin && (
         <button
@@ -122,7 +126,7 @@ export default function PollItem({
           {isVoting ? 'Casting Vote...' : 'Vote'}
         </button>
       )}
-      {(isUserVoted || isAdmin) && (
+      {(isAdmin) && (
         <div className='mt-4'>
           <h4 className='text-lg font-semibold mb-2'>Results</h4>
           <div className='h-64'>
