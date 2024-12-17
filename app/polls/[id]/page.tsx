@@ -64,7 +64,7 @@ export default function AdminVotes() {
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/vote/${voteId}`, { method: 'DELETE' });
+      const response = await fetch(`/api/vote/${voteId}?id=${voteId}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete vote');
 
       alert('Vote deleted successfully');

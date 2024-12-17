@@ -166,7 +166,7 @@ export default function PollItem({
             <h4 className='text-lg font-semibold mb-2'>Results</h4>
             <Link
               href={`/polls/${id}`}
-              className='bg-blue-600 text-white py-2 px-3 rounded-md'
+              className='bg-green-600 text-white py-2 px-3 rounded-md'
             >
               View Details
             </Link>
