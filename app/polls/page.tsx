@@ -1,5 +1,5 @@
 import PollList from '../components/PollList'
-import CreatePollForm from '../components/CreatePollForm'
+// import CreatePollForm from '../components/CreatePollForm'
 import AuthWrapper from '../components/AuthWrapper'
 
 export default function PollsPage() {

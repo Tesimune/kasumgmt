@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface Candidate {
-  id: string;
-  name: string;
-  profile: string | null;
-  pollId: string;
-}
+// interface Candidate {
+//   id: string;
+//   name: string;
+//   profile: string | null;
+//   pollId: string;
+// }
 
 interface PollItemProps {
   id: string;
@@ -20,7 +20,7 @@ interface PollItemProps {
     profile: string | null;
     pollId: string;
   }[];
-  votes: { candidateId: string; user: {} }[];
+  votes: { candidateId: string; user: { id: string } }[];
   isUserVoted: boolean;
 }
 

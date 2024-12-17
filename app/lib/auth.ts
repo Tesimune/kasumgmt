@@ -47,7 +47,7 @@ export async function getUserFromToken(token: string) {
       throw new Error('User not found')
     }
     return user
-  } catch (error) {
+  } catch {
     throw new Error('Invalid token')
   }
 }
