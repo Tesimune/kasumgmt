@@ -28,7 +28,7 @@ interface PollItemProps {
     pollId: string;
     userId: string;
   }[];
-  isUserVoted: boolean;
+  isUserVoted: boolean; // Backend provided
   isAdmin: boolean;
 }
 
@@ -55,10 +55,10 @@ export default function PollItem({
   );
   const [isVoting, setIsVoting] = useState(false);
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
-  const [votedPolls, setVotedPolls] = useState<Record<string, boolean>>({});
 
   const router = useRouter();
 
+  // Calculate vote counts
   useEffect(() => {
     const counts = candidates.reduce((acc, candidate) => {
       acc[candidate.id] = votes.filter(
@@ -69,6 +69,7 @@ export default function PollItem({
     setVoteCounts(counts);
   }, [votes, candidates]);
 
+  // Handle voting
   const handleVote = async () => {
     if (!selectedCandidate || isAdmin) return;
 
@@ -95,9 +96,7 @@ export default function PollItem({
       }
 
       alert('Vote Recorded');
-      setVotedPolls((prev) => ({ ...prev, [id]: true })); // Mark this poll as voted
-      setSelectedCandidate(null); // Clear selection
-      router.refresh();
+      router.refresh(); // Reload data from backend
     } catch (error) {
       console.error('Error casting vote:', error);
       alert('Failed to cast vote. Please try again.');
@@ -106,6 +105,7 @@ export default function PollItem({
     }
   };
 
+  // Prepare chart data
   const pieChartData = candidates.map((candidate) => ({
     name: candidate.name,
     value: voteCounts[candidate.id] || 0,
@@ -115,7 +115,9 @@ export default function PollItem({
     <div className='border p-4 rounded-md shadow-sm'>
       <h3 className='text-xl font-semibold mb-2'>{position}</h3>
       {description && <p className='text-gray-600 mb-4'>{description}</p>}
-      {!votedPolls[id] && !isAdmin ? (
+
+      {/* Voting Form */}
+      {!isUserVoted && !isAdmin ? (
         <form className='space-y-2'>
           {candidates.map((candidate) => (
             <div
@@ -125,7 +127,7 @@ export default function PollItem({
               <label className='flex items-center space-x-2'>
                 <input
                   type='radio'
-                  name={`poll-candidate-${id}`} // Ensure unique input names per poll
+                  name={`poll-candidate-${id}`} // Unique name per poll
                   value={candidate.id}
                   checked={selectedCandidate === candidate.id}
                   onChange={() => setSelectedCandidate(candidate.id)}
@@ -140,7 +142,8 @@ export default function PollItem({
         <div className='text-green-600 font-semibold'>Vote Recorded</div>
       )}
 
-      {!votedPolls[id] && !isAdmin && (
+      {/* Submit Vote Button */}
+      {!isUserVoted && !isAdmin && (
         <button
           onClick={handleVote}
           disabled={!selectedCandidate || isVoting}
@@ -150,6 +153,7 @@ export default function PollItem({
         </button>
       )}
 
+      {/* Admin Results Section */}
       {isAdmin && (
         <div className='mt-4'>
           <h4 className='text-lg font-semibold mb-2'>Results</h4>
