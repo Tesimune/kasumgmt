@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+} from 'recharts';
 
 interface Candidate {
   id: string;
@@ -25,7 +32,14 @@ interface PollItemProps {
   isAdmin: boolean;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
+const COLORS = [
+  '#0088FE',
+  '#00C49F',
+  '#FFBB28',
+  '#FF8042',
+  '#8884D8',
+  '#82CA9D',
+];
 
 export default function PollItem({
   id,
@@ -36,14 +50,20 @@ export default function PollItem({
   isUserVoted,
   isAdmin,
 }: PollItemProps) {
-  const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<string | null>(
+    null
+  );
   const [isVoting, setIsVoting] = useState(false);
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
+  const [votedPolls, setVotedPolls] = useState<Record<string, boolean>>({});
+
   const router = useRouter();
 
   useEffect(() => {
     const counts = candidates.reduce((acc, candidate) => {
-      acc[candidate.id] = votes.filter((vote) => vote.candidateId === candidate.id).length;
+      acc[candidate.id] = votes.filter(
+        (vote) => vote.candidateId === candidate.id
+      ).length;
       return acc;
     }, {} as Record<string, number>);
     setVoteCounts(counts);
@@ -52,10 +72,12 @@ export default function PollItem({
   const handleVote = async () => {
     if (!selectedCandidate || isAdmin) return;
 
+    const userConfirmed = window.confirm(
+      'Are you sure you want to cast your vote?'
+    );
+    if (!userConfirmed) return;
+
     setIsVoting(true);
-    const newVoteCounts = { ...voteCounts };
-    newVoteCounts[selectedCandidate] = (newVoteCounts[selectedCandidate] || 0) + 1;
-    setVoteCounts(newVoteCounts);
 
     try {
       const token = localStorage.getItem('token');
@@ -72,11 +94,13 @@ export default function PollItem({
         throw new Error('Failed to cast vote');
       }
 
+      alert('Vote Recorded');
+      setVotedPolls((prev) => ({ ...prev, [id]: true })); // Mark this poll as voted
+      setSelectedCandidate(null); // Clear selection
       router.refresh();
     } catch (error) {
       console.error('Error casting vote:', error);
       alert('Failed to cast vote. Please try again.');
-      setVoteCounts(voteCounts);
     } finally {
       setIsVoting(false);
     }
@@ -91,14 +115,17 @@ export default function PollItem({
     <div className='border p-4 rounded-md shadow-sm'>
       <h3 className='text-xl font-semibold mb-2'>{position}</h3>
       {description && <p className='text-gray-600 mb-4'>{description}</p>}
-      {!isUserVoted && !isAdmin ? (
+      {!votedPolls[id] && !isAdmin ? (
         <form className='space-y-2'>
           {candidates.map((candidate) => (
-            <div key={candidate.id} className='flex items-center justify-between'>
+            <div
+              key={candidate.id}
+              className='flex items-center justify-between'
+            >
               <label className='flex items-center space-x-2'>
                 <input
                   type='radio'
-                  name='poll-candidate'
+                  name={`poll-candidate-${id}`} // Ensure unique input names per poll
                   value={candidate.id}
                   checked={selectedCandidate === candidate.id}
                   onChange={() => setSelectedCandidate(candidate.id)}
@@ -106,18 +133,14 @@ export default function PollItem({
                 />
                 <span>{candidate.name}</span>
               </label>
-              <span className='text-sm text-gray-500'>
-                {/* {voteCounts[candidate.id] || 0} votes */}
-              </span>
             </div>
           ))}
         </form>
-      ): (
-        <div>
-          Vote Recoreded
-        </div>
+      ) : (
+        <div className='text-green-600 font-semibold'>Vote Recorded</div>
       )}
-      {!isUserVoted && !isAdmin && (
+
+      {!votedPolls[id] && !isAdmin && (
         <button
           onClick={handleVote}
           disabled={!selectedCandidate || isVoting}
@@ -126,24 +149,30 @@ export default function PollItem({
           {isVoting ? 'Casting Vote...' : 'Vote'}
         </button>
       )}
-      {(isAdmin) && (
+
+      {isAdmin && (
         <div className='mt-4'>
           <h4 className='text-lg font-semibold mb-2'>Results</h4>
           <div className='h-64'>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width='100%' height='100%'>
               <PieChart>
                 <Pie
                   data={pieChartData}
-                  cx="50%"
-                  cy="50%"
+                  cx='50%'
+                  cy='50%'
                   labelLine={false}
                   outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  fill='#8884d8'
+                  dataKey='value'
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
                 >
                   {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -156,4 +185,3 @@ export default function PollItem({
     </div>
   );
 }
-
