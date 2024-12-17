@@ -1,0 +1,48 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  matric   String  @unique
+  password String
+  role     String  @default("user")
+  votes    Vote[]
+}
+
+model Poll {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  position    String?
+  description String?
+  candidates  Candidate[]
+  votes       Vote[]
+  createdAt   DateTime    @default(now())
+}
+
+model Candidate {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  pollId    String   @db.ObjectId
+  name      String
+  profile   String?
+  poll      Poll     @relation(fields: [pollId], references: [id])
+  votes     Vote[]
+}
+
+model Vote {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  pollId        String    @db.ObjectId
+  candidateId   String    @db.ObjectId
+  userId        String    @db.ObjectId
+  createdAt     DateTime  @default(now())
+  candidate     Candidate @relation(fields: [candidateId], references: [id])
+  poll          Poll      @relation(fields: [pollId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@unique([pollId, userId])
+}
+
