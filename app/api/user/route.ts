@@ -13,7 +13,9 @@ export async function GET(request: Request) {
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      userId: string;
+    };
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: { id: true, role: true },
@@ -24,9 +26,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(user);
-  } catch (error) {
-    console.error('Error verifying token:', error);
+  } catch {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }
 }
-

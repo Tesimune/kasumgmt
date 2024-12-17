@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import {
   PieChart,
@@ -56,7 +57,6 @@ export default function PollItem({
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
   const [isUserVoted, setIsUserVoted] = useState(initialIsUserVoted);
 
-
   // Calculate vote counts
   useEffect(() => {
     const counts = candidates.reduce((acc, candidate) => {
@@ -73,7 +73,7 @@ export default function PollItem({
     if (!selectedCandidate || isAdmin) return;
 
     const userConfirmed = window.confirm(
-      'Are you sure you want to cast your vote?'
+      'Are you sure you want to cast this vote?'
     );
     if (!userConfirmed) return;
 
@@ -162,7 +162,15 @@ export default function PollItem({
       {/* Admin Results Section */}
       {isAdmin && (
         <div className='mt-4'>
-          <h4 className='text-lg font-semibold mb-2'>Results</h4>
+          <div className='flex justify-between'>
+            <h4 className='text-lg font-semibold mb-2'>Results</h4>
+            <Link
+              href={`/polls/${id}`}
+              className='bg-blue-600 text-white py-2 px-3 rounded-md'
+            >
+              View Details
+            </Link>
+          </div>
           <div className='h-64'>
             <ResponsiveContainer width='100%' height='100%'>
               <PieChart>
