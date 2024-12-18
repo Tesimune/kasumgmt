@@ -10,6 +10,7 @@ import {
   Legend,
   Tooltip,
 } from 'recharts';
+import { getStartTime, getEndTime, formatTimeRemaining } from '../utils/timeUtils';
 
 interface Candidate {
   id: string;
@@ -56,6 +57,8 @@ export default function PollItem({
   const [isVoting, setIsVoting] = useState(false);
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
   const [isUserVoted, setIsUserVoted] = useState(initialIsUserVoted);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
   // Calculate vote counts
   useEffect(() => {
@@ -67,6 +70,35 @@ export default function PollItem({
     }, {} as Record<string, number>);
     setVoteCounts(counts);
   }, [votes, candidates]);
+
+  // Timer for voting
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(now);
+
+      const startTime = getStartTime();
+      const endTime = getEndTime();
+
+      if (now < startTime) {
+        setTimeRemaining(startTime.getTime() - now.getTime());
+      } else if (now >= startTime && now < endTime) {
+        setTimeRemaining(endTime.getTime() - now.getTime());
+      } else {
+        setTimeRemaining(null);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Check if voting is allowed
+  const isVotingAllowed = () => {
+    const now = new Date();
+    const startTime = getStartTime();
+    const endTime = getEndTime();
+    return now >= startTime && now < endTime;
+  };
 
   // Handle voting
   const handleVote = async () => {
@@ -122,8 +154,22 @@ export default function PollItem({
       <h3 className='text-xl font-semibold mb-2'>{position}</h3>
       {description && <p className='text-gray-600 mb-4'>{description}</p>}
 
+      {/* Timer Display */}
+      <div className='mb-4'>
+        {timeRemaining !== null ? (
+          <p className='text-lg font-semibold'>
+            {currentTime < getStartTime()
+              ? 'Voting starts in: '
+              : 'Voting ends in: '}
+            {formatTimeRemaining(timeRemaining)}
+          </p>
+        ) : (
+          <p className='text-lg font-semibold'>Voting has ended</p>
+        )}
+      </div>
+
       {/* Voting Form */}
-      {!isUserVoted && !isAdmin ? (
+      {!isUserVoted && !isAdmin && isVotingAllowed() ? (
         <form className='space-y-2'>
           {candidates.map((candidate) => (
             <div
@@ -145,11 +191,17 @@ export default function PollItem({
           ))}
         </form>
       ) : (
-        <div className='text-green-600 font-semibold'>Vote Recorded</div>
+        <div className='text-green-600 font-semibold'>
+          {isUserVoted
+            ? 'Vote Recorded'
+            : !isVotingAllowed()
+            ? 'Voting is not currently allowed'
+            : ''}
+        </div>
       )}
 
       {/* Submit Vote Button */}
-      {!isUserVoted && !isAdmin && (
+      {!isUserVoted && !isAdmin && isVotingAllowed() && (
         <button
           onClick={handleVote}
           disabled={!selectedCandidate || isVoting}
@@ -203,3 +255,4 @@ export default function PollItem({
     </div>
   );
 }
+
