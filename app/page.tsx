@@ -14,14 +14,18 @@ export default function Home() {
             className='mb-4'
           />
           <h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900'>
-            Welcome to the Voting Site
+            Welcome to the student voting platform.
           </h2>
+          <p className='mt-6 text-center text-md text-gray-900'>
+            Log in and cast your vote for your preferred candidate! Your
+            participation is crucial for a thriving campus community
+          </p>
         </div>
         <div className='mt-8 space-y-6'>
           <div className='rounded-md shadow'>
             <Link
               href='/login'
-              className='w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10'
+              className='w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-green-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10'
             >
               Log In
             </Link>
