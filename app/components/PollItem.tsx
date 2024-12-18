@@ -59,6 +59,7 @@ export default function PollItem({
   const [isUserVoted, setIsUserVoted] = useState(initialIsUserVoted);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [isElectionEnded, setIsElectionEnded] = useState(false); // New state variable
 
   // Calculate vote counts
   useEffect(() => {
@@ -86,6 +87,7 @@ export default function PollItem({
         setTimeRemaining(endTime.getTime() - now.getTime());
       } else {
         setTimeRemaining(null);
+        setIsElectionEnded(true); // Update to set election ended
       }
     }, 1000);
 
@@ -141,6 +143,11 @@ export default function PollItem({
     } finally {
       setIsVoting(false);
     }
+  };
+
+  // Calculate total votes
+  const calculateTotalVotes = () => {
+    return Object.values(voteCounts).reduce((sum, count) => sum + count, 0);
   };
 
   // Prepare chart data
@@ -211,45 +218,54 @@ export default function PollItem({
         </button>
       )}
 
-      {/* Admin Results Section */}
-      {isAdmin && (
+      {/* Results Section */}
+      {(isAdmin || isElectionEnded) && (
         <div className='mt-4'>
           <div className='flex justify-between'>
             <h4 className='text-lg font-semibold mb-2'>Results</h4>
-            <Link
-              href={`/polls/${id}`}
-              className='bg-green-600 text-white py-2 px-3 rounded-md'
-            >
-              View Details
-            </Link>
+            {isAdmin && (
+              <Link
+                href={`/polls/${id}`}
+                className='bg-green-600 text-white py-2 px-3 rounded-md'
+              >
+                View Details
+              </Link>
+            )}
           </div>
-          <div className='h-64'>
-            <ResponsiveContainer width='100%' height='100%'>
-              <PieChart>
-                <Pie
-                  data={pieChartData}
-                  cx='50%'
-                  cy='50%'
-                  labelLine={false}
-                  outerRadius={80}
-                  fill='#8884d8'
-                  dataKey='value'
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
-                >
-                  {pieChartData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          {isElectionEnded && (
+            <p className='text-xl font-bold mb-2'>
+              Total Votes: {calculateTotalVotes()}
+            </p>
+          )}
+          {isAdmin && (
+            <div className='h-64'>
+              <ResponsiveContainer width='100%' height='100%'>
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx='50%'
+                    cy='50%'
+                    labelLine={false}
+                    outerRadius={80}
+                    fill='#8884d8'
+                    dataKey='value'
+                    label={({ name, value, percent }) =>
+                      `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
+                    }
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       )}
     </div>
