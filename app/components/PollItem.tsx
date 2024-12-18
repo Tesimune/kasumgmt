@@ -232,7 +232,7 @@ export default function PollItem({
               </Link>
             )}
           </div>
-          {isElectionEnded && (
+          {(isAdmin || isElectionEnded) && (
             <p className='text-xl font-bold mb-2'>
               Total Votes: {calculateTotalVotes()}
             </p>
